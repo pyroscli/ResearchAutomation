@@ -149,22 +149,37 @@ Playbook files in `playbook/` are the agent contract. The JSON schema is `playbo
 cp .env.example .env
 ```
 
-4. Start Postgres and install the bot:
+4. Run the bot in the background (no `python -m researchbot` needed):
 
 ```bash
-docker compose up -d
+docker compose up -d --build
+```
+
+Docker keeps Postgres and the bot running, and restarts them if they crash. Telegram still works from your phone. Stop the old `python -m researchbot` process first if it is still running — Telegram only allows one poller.
+
+Logs:
+
+```bash
+docker compose logs -f bot
+```
+
+Stop:
+
+```bash
+docker compose down
+```
+
+This stays up only while this machine is on. If the laptop sleeps or shuts down, the bot goes offline. For always-on (phone only, laptop off), deploy the same Docker image to a VPS, Railway, Render, or Fly.io with `TELEGRAM_BOT_TOKEN`, `CURSOR_API_KEY`, and a Postgres database.
+
+### Local development
+
+```bash
+docker compose up -d db
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
-```
-
-5. Run:
-
-```bash
 python -m researchbot
 ```
-
-The process starts a local Cursor SDK bridge (not an LLM API) and long-polls Telegram. Send the bot a research question. It replies immediately that research started, then sends the report when the Cloud Agent finishes.
 
 ## Agent workspace
 
