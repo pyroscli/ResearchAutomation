@@ -19,43 +19,43 @@ Intelligence stays in Cursor Cloud Agents. The Telegram app is orchestration, st
 ```
                          Research Intelligence Layer
 
-  Telegram user
+   Telegram user
         |
         v
-  +------------------+
-  | Telegram bot     |  /start  /help  /search  NL query
-  | ack + delivery   |
-  +--------+---------+
+  
+    Telegram bot        /start  /help  /search  NL query
+    ack + delivery   
+ 
            |
            v
-  +------------------+          +------------------+
-  | Task orchestrator|--------->| Postgres         |
-  | rate limits      |          | users, tasks,    |
-  | state machine    |          | sources, results |
-  +--------+---------+          +------------------+
+          
+    Task orchestrator --------->  Postgres         
+    rate limits                   users, tasks,    
+    state machine                 sources, results 
+         
            |
            |  launch Cloud Agent (no LLM API in the bot)
            v
-  +------------------------------------------------------+
-  |              Cursor Cloud Agent                       |
-  |                                                      |
-  |   Query --> Understand --> Search --> Candidates     |
-  |                |                                     |
-  |                +-- papers -- arXiv / Semantic Scholar / Crossref
-  |                +-- blogs  -- technical articles
-  |                +-- videos -- YouTube + transcript
-  |                                                      |
-  |   Dedupe --> Rank --> Read --> Analyze --> JSON      |
-  +---------------------------+--------------------------+
+  
+                 Cursor Cloud Agent                       
+                                                       
+      Query --> Understand --> Search --> Candidates     
+                   |                                     
+                   +-- papers -- arXiv / Semantic Scholar / Crossref
+                   +-- blogs  -- technical articles
+                   +-- videos -- YouTube + transcript
+                                                         
+      Dedupe --> Rank --> Read --> Analyze --> JSON      
+
                               |
                               v
                  artifacts/research-result.json
                               |
                               v
-  +------------------+    +------------------+
-  | Validator        |--->| Telegram formatter|
-  +------------------+    +--------+---------+
-                                       |
+  
+    Validator        ---> Telegram formatter
+ 
+                                       
                                        v
                                  Telegram user
 ```
@@ -73,13 +73,13 @@ Intelligence stays in Cursor Cloud Agents. The Telegram app is orchestration, st
                       v
                   Deduplicate
                       |
-          +-----------+-----------+
+         
           |           |           |
           v           v           v
      Rank paper  Fetch PDF/   Extract
                  abstract     content
           |           |           |
-          +-----------+-----------+
+          
                       |
                       v
               Cloud Agent analyze
