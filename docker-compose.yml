@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: researchbot
+      POSTGRES_PASSWORD: researchbot
+      POSTGRES_DB: researchbot
+    ports:
+      - "5432:5432"
+    volumes:
+      - researchbot-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U researchbot -d researchbot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  researchbot-pg:

@@ -1,0 +1,70 @@
+{
+  "query": "continuous batching in LLM inference",
+  "summary": "Continuous batching lets an inference server admit new requests at iteration boundaries instead of waiting for a whole batch to finish. The strongest primary sources are the Orca and PagedAttention papers, with engineering writeups and talks that explain the serving implications.",
+  "sources": [
+    {
+      "type": "paper",
+      "title": "Orca: A Distributed Serving System for Transformer-Based Generative Models",
+      "url": "https://www.usenix.org/conference/osdi22/presentation/yu",
+      "source_name": "OSDI",
+      "reliability": "high",
+      "relevance_score": 9.6,
+      "verified": true,
+      "canonical_id": "osdi22-yu",
+      "authors": ["Gyeong-In Yu", "Joo Seong Jeong", "Geon-Woo Kim", "Soojeong Kim", "Byung-Gon Chun"],
+      "published_date": "2022",
+      "summary": {
+        "tldr": "Orca introduces iteration-level scheduling so new requests can join a running batch as soon as a token step finishes.",
+        "problem": "Request-level batching wastes GPU work when sequences decode at different lengths.",
+        "approach": "Schedule at the iteration / token boundary and apply selective batching for transformer ops.",
+        "key_findings": [
+          "Iteration-level scheduling improves throughput versus request-level batching",
+          "Selective batching keeps attention correct while batching other layers"
+        ],
+        "why_it_matters": "This is the core idea later systems call continuous batching.",
+        "difficulty": "advanced"
+      }
+    },
+    {
+      "type": "blog",
+      "title": "How continuous batching enables 23x throughput in LLM inference",
+      "url": "https://www.anyscale.com/blog/continuous-batching-llm-inference",
+      "source_name": "Anyscale",
+      "reliability": "high",
+      "relevance_score": 9.1,
+      "verified": true,
+      "author": "Anyscale",
+      "website": "anyscale.com",
+      "published_date": "2023-06-22",
+      "summary": {
+        "tldr": "Engineering explanation of why iteration-level scheduling raises GPU utilization for decode-heavy traffic.",
+        "main_argument": "Static batches leave the GPU idle when short sequences finish early.",
+        "technical_takeaways": [
+          "Admit new requests at token boundaries",
+          "Memory management becomes the next bottleneck after scheduling"
+        ],
+        "why_it_matters": "Useful bridge between the Orca paper and production serving stacks."
+      }
+    },
+    {
+      "type": "video",
+      "title": "Efficiently Serving LLMs",
+      "url": "https://www.youtube.com/watch?v=80bIUggRJf4",
+      "source_name": "YouTube",
+      "reliability": "high",
+      "relevance_score": 8.9,
+      "verified": true,
+      "canonical_id": "80bIUggRJf4",
+      "channel": "Stanford Online",
+      "duration": "77:00",
+      "summary": {
+        "tldr": "Lecture covering KV cache, continuous batching, and PagedAttention in LLM serving.",
+        "key_concepts": ["KV cache", "continuous batching", "PagedAttention"],
+        "timestamps": [
+          { "time": "00:14", "label": "KV cache" },
+          { "time": "00:28", "label": "Continuous batching" }
+        ]
+      }
+    }
+  ]
+}
