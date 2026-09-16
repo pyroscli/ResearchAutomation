@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 from typing import Any
@@ -119,8 +120,20 @@ class CursorResearchRuntime:
             result = await run.wait()
             run_id = getattr(result, "id", None) or run_id
             status = getattr(result, "status", None)
-            if status != "finished":
+            detail = (getattr(result, "result", None) or "").strip()
+            # The SDK stream sometimes emits an empty error the instant a
+            # cloud VM starts. The run is still alive — poll until it settles.
+            if status != "finished" and not detail:
+                logger.warning(
+                    "Ignoring empty %s from stream; polling cloud run %s",
+                    status,
+                    run_id,
+                )
+                result = await self._poll_cloud_run(agent_id, run_id)
+                run_id = getattr(result, "id", None) or run_id
+                status = getattr(result, "status", None)
                 detail = (getattr(result, "result", None) or "").strip()
+            if status != "finished":
                 logger.error(
                     "Cloud Agent run failed agent=%s run=%s status=%s detail=%s",
                     agent_id,
@@ -159,6 +172,38 @@ class CursorResearchRuntime:
                 maybe = close()
                 if hasattr(maybe, "__await__"):
                     await maybe
+
+    async def _poll_cloud_run(self, agent_id: str, run_id: str | None) -> Any:
+        if not run_id or self._client is None:
+            raise CursorAgentError(
+                "Research agent run ended with status error",
+                agent_id=agent_id,
+                run_id=run_id,
+            )
+        deadline = asyncio.get_running_loop().time() + self._settings.research_timeout_seconds
+        last: Any = None
+        while asyncio.get_running_loop().time() < deadline:
+            handle = await self._client.get_run(
+                run_id,
+                {
+                    "apiKey": self._settings.cursor_api_key,
+                    "runtime": "cloud",
+                    "agentId": agent_id,
+                },
+            )
+            last = handle
+            status = getattr(handle, "status", None)
+            if status == "finished" or (
+                status in {"error", "cancelled", "expired"}
+                and (getattr(handle, "result", None) or getattr(handle, "duration_ms", 0))
+            ):
+                waited = getattr(handle, "wait", None)
+                if waited is not None:
+                    return await _maybe_await(waited())
+                return handle
+            logger.info("Cloud run %s still %s; waiting", run_id, status)
+            await asyncio.sleep(4)
+        return last
 
     async def _load_report(self, agent: Any, run: Any, result: Any) -> ResearchReport:
         payload = await self._download_artifact_json(agent)
